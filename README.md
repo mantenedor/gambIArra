@@ -1,4 +1,12 @@
-Com base no código informado e nos arquivos mencionados (`core.py`, `tts.py`, `stt.py`), segue uma descrição detalhada dos passos necessários para utilizar o sistema e garantir a comunicação entre os componentes via WebSocket.
+O código implementa um **assistente de voz inteligente** que recebe comandos de áudio do usuário, interpreta e executa ações no sistema ou consulta a API do ChatGPT para fornecer respostas.  
+
+Ele é composto por três módulos principais que se comunicam via WebSocket:  
+
+- **`core.py`**: O núcleo do sistema, responsável por processar comandos, executar ações no sistema e se comunicar com a API do ChatGPT.  
+- **`tts.py`** (Speech-to-Text - STT): Captura a entrada de áudio do usuário, converte em texto e envia para o `core.py`.  
+- **`stt.py`** (Text-to-Speech - TTS): Recebe as respostas processadas e as converte em áudio para o usuário.  
+
+O sistema suporta comandos pré-definidos e respostas geradas dinamicamente via IA, permitindo interações naturais e automação de tarefas.
 
 ---
 
