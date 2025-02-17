@@ -1,0 +1,27 @@
+{
+    "horas": {
+        "description": "Verificar o horário",
+        "os_command": "date +%H:%M",
+        "default_output": "Horário não disponível no momento."
+    },
+    "data": {
+        "description": "Verificar a data",
+        "os_command": "date +%d/%m/%Y",
+        "default_output": "Data não disponível no momento."
+    },
+    "ligar storage": {
+        "description": "Liga storage",
+        "os_command": "wakeonlan -i 10.0.7.255 78:2B:CB:C2:9B:1C",
+        "default_output": "Pacote mágico enviado."
+    },
+    "ligar servidor": {
+        "description": "Liga servidor",
+        "os_command": "wakeonlan -i 10.0.7.255 50:46:5D:66:F7:D3",
+        "default_output": "Pacote mágico enviado."
+    },
+    "tempo": {
+        "description": "Verificar o clima",
+        "os_command": "curl wttr.in?format=3",
+        "default_output": "Informação climática não disponível no momento."
+    }
+}

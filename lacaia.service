@@ -1,0 +1,17 @@
+[Unit]
+Description=Lacaia Python Scripts Daemon
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/opt/lacaia/daemon.sh
+Restart=always
+User=pi
+Group=pi
+StandardOutput=append:/tmp/lacaia.log
+StandardError=append:/tmp/lacaia_error.log
+WorkingDirectory=/opt/lacaia
+
+[Install]
+WantedBy=multi-user.target
+

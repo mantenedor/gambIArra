@@ -1,0 +1,56 @@
+import asyncio
+import websockets
+import json
+import time
+
+COMMANDS = {
+    "horas": "O horário atual é 14:30",
+    "data": "Hoje é 16 de fevereiro de 2025",
+    "tempo": "O clima está ensolarado com 28°C"
+}
+
+async def send_to_tts(response):
+    """Função para enviar resposta ao servidor TTS via WebSocket"""
+    while True:
+        try:
+            async with websockets.connect("ws://localhost:8766") as tts_ws:
+                await tts_ws.send(json.dumps({"response": response}))
+            break  # Se a mensagem foi enviada com sucesso, sai do loop
+        except websockets.exceptions.ConnectionClosedError:
+            print("⚠️ Erro: Conexão com o servidor TTS foi fechada inesperadamente. Tentando reconectar...")
+            await asyncio.sleep(2)  # Espera 2 segundos antes de tentar reconectar
+        except Exception as e:
+            print(f"⚠️ Erro ao conectar ao servidor TTS: {e}. Tentando novamente em 2 segundos.")
+            await asyncio.sleep(2)  # Espera 2 segundos antes de tentar reconectar
+
+async def process_command(websocket, path):
+    """Processa os comandos recebidos via WebSocket"""
+    try:
+        async for message in websocket:
+            data = json.loads(message)
+            command = data.get("command", "").lower()
+            response = COMMANDS.get(command, "Desculpe, não entendi o comando.")
+            print(f"✅ Comando recebido: {command} -> {response}")
+
+            # Enviar a resposta para o servidor TTS
+            await send_to_tts(response)
+    except websockets.exceptions.ConnectionClosedError:
+        print("⚠️ Erro: Conexão com o WebSocket foi fechada inesperadamente. Tentando reconectar...")
+    except Exception as e:
+        print(f"⚠️ Erro ao processar o comando: {e}")
+        await asyncio.sleep(2)  # Espera 2 segundos antes de tentar novamente
+
+async def main():
+    """Inicia o servidor WebSocket"""
+    while True:
+        try:
+            async with websockets.serve(process_command, "localhost", 8765):
+                print("🧠 Servidor WebSocket iniciado na porta 8765")
+                await asyncio.Future()  # Mantém o servidor rodando
+        except Exception as e:
+            print(f"⚠️ Erro ao iniciar o servidor WebSocket: {e}. Tentando reiniciar em 5 segundos.")
+            await asyncio.sleep(5)  # Espera 5 segundos antes de tentar novamente
+
+# Inicia o servidor WebSocket
+asyncio.run(main())
+

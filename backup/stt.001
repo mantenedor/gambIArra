@@ -1,0 +1,69 @@
+import vosk
+import pyaudio
+import json
+import os
+import numpy as np
+import time
+from fuzzywuzzy import fuzz
+import subprocess
+
+MODEL_PATH = "./models/vosk-model-small-pt-0.3"
+COMMANDS_FILE = "commands.json"
+
+if not os.path.exists(MODEL_PATH):
+    raise FileNotFoundError(f"Modelo não encontrado em {MODEL_PATH}")
+if not os.path.exists(COMMANDS_FILE):
+    raise FileNotFoundError(f"Arquivo de comandos não encontrado: {COMMANDS_FILE}")
+
+print("🔄 Carregando modelo Vosk...")
+model = vosk.Model(MODEL_PATH)
+recognizer = vosk.KaldiRecognizer(model, 16000)
+
+p = pyaudio.PyAudio()
+stream = p.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=1024)
+stream.start_stream()
+
+print("🎤 Diga algo...")
+
+with open(COMMANDS_FILE, "r", encoding="utf-8") as f:
+    commands = json.load(f)
+
+def execute_command(command):
+    try:
+        output = subprocess.run(command, shell=True, capture_output=True, text=True)
+        print(f"📢 Saída: {output.stdout.strip()}")
+    except Exception as e:
+        print(f"⚠️ Erro ao executar comando: {e}")
+
+try:
+    while True:
+        data = stream.read(1024, exception_on_overflow=False)
+        if recognizer.AcceptWaveform(data):
+            result = json.loads(recognizer.Result())
+            text = result.get('text', '').strip()
+            
+            if text:
+                print(f"📝 Reconhecido: {text}")
+                best_match = None
+                best_score = 0
+
+                for command in commands:
+                    score = fuzz.ratio(text, command)
+                    if score > best_score:
+                        best_score = score
+                        best_match = command
+                
+                if best_match and best_score > 90:
+                    print(f"✅ Executando: {best_match}")
+                    execute_command(commands[best_match]["os_command"])
+                elif best_match and 60 < best_score <= 90:
+                    confirm = input(f"❓ Você quis dizer '{best_match}'? (s/n): ")
+                    if confirm.lower() == 's':
+                        execute_command(commands[best_match]["os_command"])
+except KeyboardInterrupt:
+    print("🛑 Interrompido pelo usuário.")
+finally:
+    stream.stop_stream()
+    stream.close()
+    p.terminate()
+
