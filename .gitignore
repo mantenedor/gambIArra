@@ -1,0 +1,17 @@
+# Pastas do ambiente virtual
+venv/
+env/
+
+# Arquivos de compilação
+__pycache__/
+*.py[cod]
+
+# Logs e arquivos temporários
+*.log
+*.tmp
+.DS_Store
+
+# Configurações locais
+.env
+.idea/
+.vscode/
