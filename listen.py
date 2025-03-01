@@ -1,90 +1,117 @@
 import asyncio
-import speech_recognition as sr
+import websockets
+import json
+import os
+import pyaudio
+import vosk
 import time
-import pygame
+import unicodedata
 
-# Variáveis de configuração para palavras-chave
-UNLOCK_KEYWORD = "oxe"  # Palavra para desbloquear após inatividade
-STOP_KEYWORD = "para para para"  # Palavra para interromper o sistema
+MODEL_PATH = "./models/vosk-model-small-pt-0.3"
+WEBSOCKET_URI = "ws://localhost:8765"
+INACTIVITY_TIMEOUT = 10.0
+UNLOCK_KEYWORDS = ["oxe", "desbloquear", "acorda", "reativar", "e aí 4", "e aí quatro"]
+STOP_KEYWORD = "para para para"
+USE_WEBSOCKET = False
 
-async def recognize_speech(state, interrupt_mode=False):
-    """Reconhece a fala do usuário usando pause_threshold para fim de frase."""
-    recognizer = sr.Recognizer()
-    mic = sr.Microphone()
+# Flag global para sinalizar encerramento
+should_stop = False
+
+if not os.path.exists(MODEL_PATH):
+    raise FileNotFoundError(f"Modelo não encontrado em {MODEL_PATH}")
+
+def normalize_text(text):
+    return ''.join(c for c in unicodedata.normalize('NFD', text.lower()) if unicodedata.category(c) != 'Mn')
+
+async def send_audio(sentence):
+    if not USE_WEBSOCKET:
+        print("🎤 WebSocket desativado. Comando não enviado.")
+        return True
+    
+    max_retries = 3
+    retry_delay = 2
+    for attempt in range(max_retries):
+        try:
+            async with websockets.connect(WEBSOCKET_URI) as websocket:
+                print(f"🎤 Enviando comando: {sentence}")
+                await websocket.send(json.dumps({"command": sentence}))
+                return True
+        except (websockets.exceptions.ConnectionClosedError, Exception) as e:
+            print(f"⚠️ Erro ao enviar dados (tentativa {attempt + 1}/{max_retries}): {e}")
+            if attempt < max_retries - 1:
+                await asyncio.sleep(retry_delay)
+            else:
+                print("❌ Falha após todas as tentativas. Prosseguindo sem WebSocket.")
+                return False
+
+async def recognize_speech(state):
+    global should_stop
+    print("🔄 Carregando modelo Vosk...")
+    model = vosk.Model(MODEL_PATH)
+    recognizer = vosk.KaldiRecognizer(model, 16000)
+    
+    p = pyaudio.PyAudio()
+    stream = p.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=4096)
+    stream.start_stream()
+    
+    print("🎤 Escutando em tempo real...")
+    
     try:
-        with mic as source:
-            if not state.get("adjusted", False):
-                print("🎤 Ajustando para ruído ambiente...")
-                recognizer.adjust_for_ambient_noise(source, duration=0.2)
-                state["adjusted"] = True
-            print("🎤 Escutando" + (" (interrupção)" if interrupt_mode else "") + "...")
-            audio = recognizer.listen(source, timeout=5 if interrupt_mode else 5)
-            recognizer.pause_threshold = 1.0  # 1 segundo de silêncio para fim de frase
+        normalized_unlock_keywords = [normalize_text(kw) for kw in UNLOCK_KEYWORDS]
+        normalized_stop_keyword = normalize_text(STOP_KEYWORD)
         
-        print("🔊 Reconhecendo áudio...")
-        sentence = recognizer.recognize_google(audio, language="pt-BR")
-        print(f"📝 Reconhecido: {sentence}")
-        return sentence
-    except sr.UnknownValueError:
-        print("❌ Não foi possível entender o áudio.")
-        return None
-    except sr.RequestError as e:
-        print(f"❌ Erro na requisição ao serviço de reconhecimento: {e}")
-        return None
-    except sr.WaitTimeoutError:
-        print("❌ Timeout: nenhuma fala detectada.")
-        return None
+        while not should_stop:
+            try:
+                data = stream.read(4096, exception_on_overflow=False)
+                if recognizer.AcceptWaveform(data):
+                    result = json.loads(recognizer.Result())
+                    sentence = result.get("text", "")
+                    if sentence:
+                        print(f"📝 Reconhecido: {sentence}")
+                        normalized_sentence = normalize_text(sentence)
+                        
+                        if normalized_stop_keyword in normalized_sentence:
+                            print(f"Listen: '{STOP_KEYWORD}' detectado, interrompendo...")
+                            state["interrupt"] = True
+                            state["message"] = None
+                            state["response"] = None
+                            await asyncio.sleep(0.1)
+                            state["interrupt"] = False
+                            state["listening"] = False
+                            continue
+                        
+                        if (time.time() - state["last_speech_time"] > INACTIVITY_TIMEOUT) and not state["speaking"] and not state["thinking"] and not state["response"]:
+                            print(f"🕒 Inativo por mais de {INACTIVITY_TIMEOUT}s. Aguardando {UNLOCK_KEYWORDS}...")
+                            if any(kw in normalized_sentence for kw in normalized_unlock_keywords):
+                                detected = next(kw for kw in UNLOCK_KEYWORDS if normalize_text(kw) in normalized_sentence)
+                                print(f"✅ '{detected}' detectado. Retomando.")
+                                state["last_speech_time"] = time.time()
+                                state["message"] = None
+                                state["response"] = None
+                                state["interrupt"] = False
+                                state["speaking"] = False
+                                state["thinking"] = False
+                            continue
+                        
+                        if not state["thinking"] and (time.time() - state["last_speech_time"] <= INACTIVITY_TIMEOUT):
+                            state["last_speech_time"] = time.time()
+                            state["message"] = sentence
+                            print(f"Listen: capturado e definido em state['message']: {sentence}")
+                            await send_audio(sentence)
+                else:
+                    print("Listen: aguardando áudio...")
+                await asyncio.sleep(0.01)
+            except asyncio.CancelledError:
+                print("Listen: tarefa cancelada")
+                break
     except Exception as e:
-        print(f"❌ Erro inesperado no reconhecimento: {e}")
-        return None
+        print(f"❌ Erro no reconhecimento: {e}")
+    finally:
+        stream.stop_stream()
+        stream.close()
+        p.terminate()
+        print("Listen: stream de áudio finalizado")
 
 async def listen(state):
-    """Ouve o usuário e processa a fala com reativação por 'feijoada'."""
-    INACTIVITY_TIMEOUT = 10.0
-    while True:
-        # Modo de interrupção: sempre ativo para "para para para"
-        state["listening"] = True
-        sentence_interrupt = await recognize_speech(state, interrupt_mode=True)
-        if sentence_interrupt and STOP_KEYWORD in sentence_interrupt.lower():
-            print(f"Listen: palavra-chave '{STOP_KEYWORD}' detectada, interrompendo...")
-            state["interrupt"] = True
-            state["message"] = None
-            state["response"] = None
-            pygame.mixer.music.stop()
-            await asyncio.sleep(0.1)
-            state["interrupt"] = False
-            state["listening"] = False
-            print(f"Debug: estados após interrupção - speaking: {state['speaking']}, thinking: {state['thinking']}")
-            continue
-        
-        # Verifica inatividade
-        if (time.time() - state["last_speech_time"] > INACTIVITY_TIMEOUT) and not state["speaking"] and not state["thinking"] and not state["response"]:
-            print(f"🕒 Sistema inativo há mais de 10 segundos. Aguardando '{UNLOCK_KEYWORD}' (diga '{STOP_KEYWORD}' para interromper)...")
-            if sentence_interrupt and UNLOCK_KEYWORD in sentence_interrupt.lower():
-                print(f"✅ Palavra '{UNLOCK_KEYWORD}' detectada. Retomando operação normal.")
-                state["last_speech_time"] = time.time()
-                state["message"] = None
-                state["response"] = None
-                state["interrupt"] = False
-                state["speaking"] = False
-                state["thinking"] = False
-            continue
-        
-        # Modo normal: captura frases completas apenas se não estiver pensando e não inativo
-        if not state["thinking"] and (time.time() - state["last_speech_time"] <= INACTIVITY_TIMEOUT):
-            if sentence_interrupt and not state["speaking"]:
-                state["last_speech_time"] = time.time()
-                state["message"] = sentence_interrupt
-                print(f"Listen: capturado no modo interrupção e enviado: {sentence_interrupt}")
-                print(f"Debug: mensagem enviada ao think - message: {state['message']}, speaking: {state['speaking']}, thinking: {state['thinking']}")
-            else:
-                print("Listen: iniciando captura de áudio...")
-                sentence_normal = await recognize_speech(state, interrupt_mode=False)
-                if sentence_normal:
-                    state["last_speech_time"] = time.time()
-                    state["message"] = sentence_normal
-                    print(f"Listen: capturado e enviado: {sentence_normal}")
-                    print(f"Debug: mensagem enviada ao think - message: {state['message']}, speaking: {state['speaking']}, thinking: {state['thinking']}")
-        
-        state["listening"] = False
-        await asyncio.sleep(0.05)
+    state["listening"] = True
+    await recognize_speech(state)

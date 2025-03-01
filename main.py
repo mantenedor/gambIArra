@@ -1,28 +1,50 @@
 import asyncio
 import time
-import multiprocessing
+import sys
 from listen import listen
 from speak import speak
 from think import think
 
-async def main(state):
-    """Função principal que inicia as tarefas assíncronas."""
-    state["last_speech_time"] = time.time()  # Inicializa no estado compartilhado
-    listen_task = asyncio.create_task(listen(state))
-    speak_task = asyncio.create_task(speak(state))
-    think_task = asyncio.create_task(think(state))
-    await asyncio.gather(listen_task, speak_task, think_task)
+# Flag global para sinalizar encerramento
+should_stop = False
+
+async def main():
+    global should_stop
+    state = {
+        "listening": False,
+        "speaking": False,
+        "thinking": False,
+        "message": None,
+        "response": None,
+        "adjusted": False,
+        "interrupt": False,
+        "last_speech_time": time.time()
+    }
+    print("Main: iniciando tarefas...")
+    tasks = [
+        asyncio.create_task(listen(state)),
+        asyncio.create_task(speak(state)),
+        asyncio.create_task(think(state))
+    ]
+    try:
+        await asyncio.gather(*tasks)
+    except KeyboardInterrupt:
+        print("Main: recebendo interrupção...")
+        should_stop = True
+        for task in tasks:
+            task.cancel()
+        try:
+            await asyncio.gather(*tasks, return_exceptions=True)
+        except Exception as e:
+            print(f"Main: erro ao cancelar tarefas: {e}")
+        print("Main: todas as tarefas encerradas")
+        sys.exit(0)
 
 if __name__ == "__main__":
-    from multiprocessing import freeze_support
-    freeze_support()
-    manager = multiprocessing.Manager()
-    state = manager.dict()
-    state["listening"] = False
-    state["speaking"] = False
-    state["thinking"] = False
-    state["message"] = None
-    state["response"] = None
-    state["adjusted"] = False
-    state["interrupt"] = False
-    asyncio.run(main(state))
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("Programa encerrado pelo usuário.")
+        sys.exit(0)
+    except Exception as e:
+        print(f"❌ Erro geral: {e}")
