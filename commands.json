@@ -1,0 +1,85 @@
+{
+    "commands": {
+        "horas": {
+            "description": "Verificar o horário",
+            "os_command": "time /t",
+            "default_output": "Horário não disponível."
+        },
+        "data": {
+            "description": "Verificar a data",
+            "os_command": "date /t",
+            "default_output": "Data não disponível."
+        },
+        "tempo": {
+            "description": "Verificar o clima",
+            "os_command": "curl wttr.in?format=3",
+            "default_output": "Clima não disponível."
+        },
+        "desligar cinco": {
+            "description": "Encerrar o processo principal",
+            "os_command": "taskkill /F /IM \"gambIArra.exe\"",
+            "default_output": "Processo principal encerrado."
+        },
+        "desligar notebook": {
+            "description": "Iniciar contagem para desligar o notebook",
+            "os_command": "shutdown /s /t 10",
+            "default_output": "Contagem regressiva iniciada para desligar o notebook."
+        },
+        "reiniciar notebook": {
+            "description": "Iniciar contagem para reiniciar o notebook",
+            "os_command": "shutdown /r /f /t 10",
+            "default_output": "Contagem regressiva iniciada para reiniciar o notebook."
+        },
+        "dólar": {
+            "description": "Verificar o Dólar",
+            "os_command": "curl -s https://economia.awesomeapi.com.br/last/USD-BRL | C:\\Users\\wagtono\\AppData\\Local\\Microsoft\\WinGet\\Packages\\jqlang.jq_Microsoft.Winget.Source_8wekyb3d8bbwe\\jq.exe -r .USDBRL.bid",
+            "default_output": "Cotação não disponível."
+        },
+        "bitcoin": {
+            "description": "Verificar o Bitcoin",
+            "os_command": "curl -s https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=brl | C:\\Users\\wagtono\\AppData\\Local\\Microsoft\\WinGet\\Packages\\jqlang.jq_Microsoft.Winget.Source_8wekyb3d8bbwe\\jq.exe -r .bitcoin.br",
+            "default_output": "Cotação não disponível."
+        }
+    },
+    "roles": [
+        {
+            "role": "system",
+            "content": "Você é o o Bender do futurama."
+        },
+        {
+            "role": "user",
+            "content": "{message}"
+        }
+    ],
+    "apis": {
+        "openai": {
+            "url": "https://api.openai.com/v1/chat/completions",
+            "api_key": "sua_chave_gpt_aqui",
+            "model": "gpt-3.5-turbo"
+        },
+        "grok": {
+            "url": "https://api.xai.com/v1/chat/completions",
+            "api_key": "sua_chave_grok_aqui",
+            "model": "grok"
+        },
+        "deepseek": {
+            "url": "https://api.deepseek.com/v1/chat/completions",
+            "api_key": "sua_chave_deepseek_aqui",
+            "model": "deepseek-chat"
+        },
+        "llama": {
+            "url": "http://localhost:11434/api/generate",
+            "api_key": null,
+            "model": "llama2"
+        }
+    },
+    "listen_config": {
+        "inactivity_timeout": 10.0,
+        "unlock_keywords": ["oxe", "desbloquear", "acorda", "reativar"],
+        "lock_keywords": ["suspenda", "suspender"],
+        "stop_keyword": "paro paro paro",
+        "lock_sound": "close.wav",
+        "unlock_sound": "open.wav",
+        "model_path": "models\\vosk-model-small-pt-0.3" 
+    }
+}
