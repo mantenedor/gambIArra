@@ -1,248 +1,133 @@
-# gambIArra - Assistente de Voz Multifuncional
+# LEIAME - gambIArra
 
-## Finalidade
+Bem-vindo ao **gambIArra**, um assistente pessoal de voz offline que utiliza reconhecimento de fala e memória para interagir com você! Este documento explica como instalar, configurar e usar o programa.
 
-Este projeto é um assistente de voz em Python que integra captura de áudio, processamento de texto, e síntese de voz. Ele permite interação por comandos de voz, incluindo palavras-chave para controle (como "oxe" para desbloqueio e "para para para" para interrupção) e comandos específicos definidos em JSON (ex.: "horas", "data", "tempo"). O sistema suporta processamento local de comandos do sistema operacional e integração com APIs de inteligência artificial (OpenAI, Grok, Deepseek, Ollama) para respostas dinâmicas.
+## Descrição
+O gambIArra é um assistente de voz desenvolvido em Python que:
+- Usa o **Vosk** para reconhecimento de fala offline em português.
+- Armazena informações como nomes (ex.: do seu gato), lugares e pessoas em um arquivo de memória (`memory.json`).
+- Responde a comandos de voz configuráveis e perguntas simples, como "Qual é o nome do meu gato?".
 
-O assistente é projetado para:
-- Capturar comandos de voz em tempo real.
-- Executar ações locais (ex.: verificar horário) ou consultas via APIs.
-- Entrar em modo de inatividade após 10 segundos sem interação, exigindo desbloqueio com "oxe".
-- Interromper a fala com "para para para".
-
-## Estrutura do Código
-
-O projeto é dividido em quatro arquivos principais, todos em Python, que trabalham juntos de forma assíncrona usando o módulo `asyncio`:
-
-- **`main.py`**: Ponto de entrada do programa. Configura o estado compartilhado (`state`) via `multiprocessing.Manager` e inicializa as tarefas assíncronas `listen`, `speak`, e `think`.
-- **`listen.py`**: Responsável pela captura de áudio usando `speech_recognition`. Detecta palavras-chave ("oxe", "para para para") e envia mensagens capturadas ao `think`.
-- **`speak.py`**: Gera e reproduz áudio usando `pyttsx3` (sintetizador offline). Responde às mensagens processadas pelo `think`.
-- **`think.py`**: Processa mensagens recebidas do `listen`. Verifica comandos JSON locais (ex.: "horas") e executa ações via `subprocess`, ou encaminha para APIs externas na ordem de prioridade definida.
-
-### Fluxo Básico
-1. `listen` captura áudio e atualiza `state["message"]`.
-2. `think` processa `state["message"]`, verifica comandos locais ou consulta APIs, e define `state["response"]`.
-3. `speak` reproduz `state["response"]` como áudio.
-4. O estado compartilhado (`state`) coordena as interações entre os módulos.
-
-## Instalação
-
-### 1. Instalação do Python via Winget (Windows)
-Para instalar o Python usando o `winget` (gerenciador de pacotes do Windows):
-1. Abra o **Prompt de Comando** ou **Terminal**.
-2. Execute o comando:
-   ```
-   winget install -e --id Python.Python.3
-   ```
-3. Confirme a instalação verificando a versão:
-   ```
-   python --version
-   ```
-   Você deve ver algo como `Python 3.11.x` ou superior.
-
-### 2. Dependências do Código
-O projeto requer as seguintes bibliotecas Python:
-- `speechrecognition`: Para captura de áudio.
-- `pygame`: Para controle de áudio (usado em `listen` para interrupção).
-- `pyttsx3`: Para síntese de voz offline.
-- `aiohttp`: Para chamadas assíncronas às APIs.
-- `python-dotenv`: Para carregar chaves de API do arquivo `.env`.
-
-#### Usando `requirements.txt`
-1. Crie um arquivo chamado `requirements.txt` no diretório do projeto com o seguinte conteúdo:
-   ```
-   speechrecognition
-   pygame
-   pyttsx3
-   aiohttp
-   python-dotenv
-   ```
-2. Instale todas as dependências com:
-   ```
-   pip install -r requirements.txt
-   ```
-
-Alternativamente, se preferir instalar manualmente, use:
-```
-pip install speechrecognition pygame pyttsx3 aiohttp python-dotenv
-```
-
-## Chaves de API
-
-O código suporta APIs externas (`openai`, `llama`, `grok`, `deepseek`). As chaves de API são necessárias para acessar essas APIs e devem ser configuradas em um arquivo `.env`.
-
-### O que são Chaves de API?
-Chaves de API são códigos únicos fornecidos por serviços de inteligência artificial para autenticar e autorizar acesso às suas funcionalidades. Elas são como "senhas" que identificam seu aplicativo ao usar os serviços.
-
-### Como Obter as Chaves de API
-1. **OpenAI**:
-   - Crie uma conta em `https://platform.openai.com`.
-   - Vá para "API Keys" no painel, crie uma nova chave, e copie-a.
-   - Adicione ao `.env`:
-     ```
-     OPENAI_API_KEY=sua-chave-aqui
-     ```
-
-2. **Grok (xAI)**:
-   - Acesse `https://x.ai` ou o console da xAI (ex.: `console.x.ai`).
-   - Faça login, vá para "API Keys", gere uma chave, e copie-a.
-   - Adicione ao `.env`:
-     ```
-     GROK_API_KEY=sua-chave-aqui
-     ```
-
-3. **Deepseek**:
-   - Visite `https://deepseek.com`, crie uma conta, e gere uma chave no painel de desenvolvedor.
-   - Adicione ao `.env`:
-     ```
-     DEEPSEEK_API_KEY=sua-chave-aqui
-     ```
-
-4. **Ollama (Local)**:
-   - Não requer chave de API, mas precisa estar rodando localmente (`http://localhost:11434` por padrão).
-   - Instale o Ollama: `curl https://ollama.ai/install.sh | sh` (Linux/Mac) ou baixe em `https://ollama.ai` (Windows).
-   - Configure o host/modelo no `.env` (opcional):
-     ```
-     OLLAMA_HOST=http://localhost:11434
-     OLLAMA_MODEL=llama2
-     ```
-
-Crie o arquivo `.env` no diretório do projeto com as chaves necessárias.
-
-## Como Executar e Interagir
-
-### Clonar o Projeto via Git
-1. Instale o Git (se não estiver instalado):
-   ```
-   winget install -e --id Git.Git
-   ```
-2. Abra o terminal e clone o repositório:
-   ```
-   git clone <URL_DO_REPOSITORIO>
-   ```
-   Substitua `<URL_DO_REPOSITORIO>` pela URL do seu repositório Git.
-3. Navegue até o diretório do projeto:
-   ```
-   cd <NOME_DA_PASTA>
-   ```
-
-### Configurar e Executar
-1. Crie o arquivo `.env` com as chaves de API (veja acima).
-2. Crie o arquivo `requirements.txt` com as dependências listadas acima.
-3. Instale as dependências:
-   ```
-   pip install -r requirements.txt
-   ```
-4. Execute o programa:
-   ```
-   python main.py
-   ```
-
-### Interagir com o Código
-- **Comandos de Voz**:
-  - Fale "horas" para ouvir o horário atual.
-  - Fale "data" para ouvir a data atual.
-  - Fale "tempo" para uma resposta padrão (pode ser ajustado).
-  - Fale qualquer outra frase (ex.: "Oi, tudo bem?") para processamento via APIs.
-
-- **Controle**:
-  - Após 10 segundos sem falar, o sistema entra em modo de inatividade e aguarda "oxe" para desbloquear.
-  - Durante a fala do assistente, diga "para para para" para interromper.
-
-## Personalização
-
-### Alterar Palavras-Chave
-Edite as variáveis no início de `listen.py`:
-- **`UNLOCK_KEYWORD`**: Mude de "oxe" para outra palavra (ex.: "olá"):
-  ```python
-  UNLOCK_KEYWORD = "olá"
-  ```
-- **`STOP_KEYWORD`**: Mude de "para para para" para outra frase (ex.: "pare"):
-  ```python
-  STOP_KEYWORD = "pare"
-  ```
-
-### Alterar Variáveis de Teste
-- **`TEST_MESSAGE` em `think.py`**:
-  - Teste uma mensagem fixa editando:
-    ```python
-    TEST_MESSAGE = "Que horas são?"
-    ```
-  - Execute `python think.py` para testar isoladamente.
-- **`TEST_SPEECH` em `speak.py`**:
-  - Teste uma fala fixa editando:
-    ```python
-    TEST_SPEECH = "Teste de voz"
-    ```
-  - Execute `python speak.py` para testar isoladamente.
-
-### Alterar Comandos JSON em `think.py`
-Edite a lista `COMMANDS` para adicionar ou modificar comandos:
-- Exemplo de adição de um novo comando "quem sou eu":
-  ```python
-  COMMANDS = {
-      "horas": {
-          "description": "Verificar o horário",
-          "os_command": "echo 'Ok google. Quantas horas'",
-          "default_output": "Horário não disponível no momento."
-      },
-      "data": {
-          "description": "Verificar a data",
-          "os_command": "date /t" if os.name == 'nt' else "date +%d/%m/%Y",
-          "default_output": "Data não disponível no momento."
-      },
-      "tempo": {
-          "description": "Verificar o clima",
-          "os_command": "echo 'cmd ok'",
-          "default_output": "Informação climática não disponível no momento."
-      },
-      "quem sou eu": {
-          "description": "Retorna uma identificação fixa",
-          "os_command": "echo 'Você é um usuário!'",
-          "default_output": "Não sei quem você é."
-      }
-  }
-  ```
-- A chave (`command_key`) é o que o sistema reconhece na fala, `os_command` é o comando executado no sistema, e `default_output` é a resposta padrão em caso de erro.
-
-## Estrutura do Diretório
-```
-project_folder/
-│
-├── main.py           # Ponto de entrada e coordenação
-├── listen.py         # Captura áudio e controle
-├── speak.py          # Reprodução de áudio
-├── think.py          # Processamento de comandos e APIs
-├── .env              # Arquivo de chaves de API (crie manualmente)
-├── requirements.txt  # Lista de dependências (crie manualmente)
-└── README.md         # Este arquivo
-```
-
-## Notas
-- O sistema depende de um microfone funcional e conexão à internet para APIs (exceto Ollama, que é local).
-- Os comandos locais são limitados ao sistema operacional (Windows/Linux). Ajuste `os_command` conforme necessário.
+## Requisitos
+- **Sistema Operacional**: Windows (o instalador foi projetado para Windows).
+- **Espaço em Disco**: Aproximadamente 100 MB (incluindo o modelo Vosk).
+- **Permissões**: Não requer privilégios de administrador (roda como usuário comum).
+- **Internet**: Necessária apenas na primeira instalação para baixar o modelo Vosk.
 
 ---
 
-### **Mudanças Realizadas**
-1. **Instrução de Instalação**:
-   - Substituí `pip install speechrecognition pygame pyttsx3 aiohttp python-dotenv` por:
-     ```
+## Instalação
+
+### Para Usuários Finais
+1. **Baixe o Instalador**:
+   - Obtenha o arquivo `gambIArra_Instalador.exe` na pasta `C:\Instaladores` (ou onde foi gerado pelo desenvolvedor).
+
+2. **Execute o Instalador**:
+   - Dê um duplo clique em `gambIArra_Instalador.exe`.
+   - Siga as instruções na tela:
+     - O instalador será salvo em `{userappdata}\gambIArra` (ex.: `C:\Users\SeuNome\AppData\Roaming\gambIArra`).
+     - O modelo Vosk será baixado e descompactado automaticamente.
+
+3. **Inicie o Programa**:
+   - Após a instalação, procure "gambIArra" no menu Iniciar do Windows e clique para abrir.
+   - O programa começará a escutar comandos de voz imediatamente.
+
+### Para Desenvolvedores (Compilação Manual)
+Se você quer compilar o projeto a partir do código-fonte:
+1. **Instale o Python**:
+   - Use Python 3.6 ou superior. Baixe em [python.org](https://www.python.org).
+
+2. **Clone o Repositório** (se aplicável):
+   - Copie os arquivos `.py`, `.wav`, `commands.json`, e o ícone `gambIArra.ico` do diretório original.
+
+3. **Instale Dependências**:
+   - Abra o terminal na pasta do projeto e execute:
+     ```bash
      pip install -r requirements.txt
      ```
-   - Adicionei instruções para criar o arquivo `requirements.txt` com as dependências listadas.
 
-2. **Estrutura do Diretório**:
-   - Atualizei para incluir `requirements.txt` como parte do projeto.
+4. **Baixe o Modelo Vosk**:
+   - O modelo `vosk-model-small-pt-0.3` já está incluído no comando PyInstaller, mas você pode baixá-lo manualmente em:
+     ```
+     https://alphacephei.com/vosk/models/vosk-model-small-pt-0.3.zip
+     ```
+   - Descompacte-o na pasta `models`.
 
-### **Próximos Passos**
-- Salve este conteúdo como `README.md` no diretório do projeto.
-- Crie o arquivo `requirements.txt` com:
-  ```
-  speechrecognition
-  pygame
-  pyttsx3
-  aiohttp
-  python-dotenv
-  ```
-- Teste as instruções clonando o projeto e seguindo os passos.
+5. **Compile com PyInstaller**:
+   - Execute o seguinte comando no terminal (ajuste os caminhos se necessário):
+     ```bash
+     python -m PyInstaller --onefile --collect-all vosk --add-data "models\vosk-model-small-pt-0.3;models\vosk-model-small-pt-0.3" --add-data "open.wav;." --add-data "close.wav;." --add-data "commands.json;." --windowed --clean --name gambIArra --icon=gambIArra.ico main.py
+     ```
+   - O executável `gambIArra.exe` será gerado na pasta `dist`.
+
+6. **Crie o Instalador com Inno Setup**:
+   - Baixe e instale o Inno Setup ([innosetup.com](https://jrsoftware.org/isinfo.php)).
+   - Abra o arquivo `.iss` fornecido no bloco de notas ou no Inno Setup Compiler.
+   - Ajuste os caminhos em `[Files]` para corresponder ao seu diretório local (ex.: `C:\SeuCaminho\`).
+   - Compile o script clicando em "Build" > "Compile".
+   - O instalador `gambIArra_Instalador.exe` será gerado em `C:\Instaladores`.
+
+---
+
+## Uso
+1. **Iniciando**:
+   - Ao abrir o `gambIArra.exe`, você ouvirá um som (`open.wav`) indicando que o assistente está ativo e escutando.
+
+2. **Comandos Básicos**:
+   - **Definir um nome**: Diga "Meu gato se chama Bagunça" ou "O nome do meu gato é Bagunça".
+   - **Consultar um nome**: Diga "Qual é o nome do meu gato?" ou "E o nome do meu gato qual é?".
+   - **Corrigir um nome**: Diga "Não, meu gato se chama Fumaça" para atualizar a memória.
+   - Outros comandos estão definidos no arquivo `commands.json`.
+
+3. **Encerrando**:
+   - Feche a janela (se visível) ou use um comando de voz configurado para sair (se implementado).
+
+4. **Memória**:
+   - O assistente salva informações em `memory.json` na pasta de instalação. Exemplo:
+     ```json
+     {
+       "user_id": "default_user",
+       "entities": {
+         "nomes": {"gato": "caxumba"},
+         "lugares": {},
+         "pessoas": {}
+       }
+     }
+     ```
+
+---
+
+## Configuração Avançada
+- **Editar Comandos**:
+  - Abra `commands.json` na pasta de instalação e adicione ou modifique comandos. Exemplo:
+    ```json
+    {
+      "commands": {
+        "abrir notepad": {
+          "os_command": "notepad.exe",
+          "default_output": "Abrindo o Notepad..."
+        }
+      }
+    }
+    ```
+- **Alterar Sons**:
+  - Substitua `open.wav` e `close.wav` por outros arquivos WAV na pasta de instalação.
+
+---
+
+## Solução de Problemas
+- **O programa não escuta**:
+  - Verifique se o microfone está conectado e funcionando.
+  - Confirme que o modelo Vosk está na pasta `models\vosk-model-small-pt-0.3`.
+- **Erro ao abrir**:
+  - Certifique-se de que o instalador terminou de baixar e descompactar o modelo Vosk. Reinstale se necessário.
+- **Respostas erradas**:
+  - Veja o log em `conversas_YYYY-MM-DD.json` para depurar o que foi reconhecido e respondido.
+
+---
+
+## Contribuições
+Se você é desenvolvedor e quer melhorar o gambIArra:
+- Adicione suporte a mais idiomas no Vosk.
+- Melhore a correção de texto com um modelo spaCy maior (ex.: `pt_core_news_md`).
+- Envie sugestões ou correções ao criador original!
