@@ -127,9 +127,9 @@ O `think.py` suporta múltiplas APIs, consultadas na ordem definida em `commands
 
 ## Como Testar
 1. Execute `gambIArra.exe`.
-2. Diga: "Meu gato se chama Bagunça."
+2. Diga: "Meu gato se chama Caxumba."
 3. Diga: "Qual é o nome do meu gato?"
-   - Esperado: "O nome do seu gato é Bagunça."
+   - Esperado: "O nome do seu gato é Caxumba."
 4. Verifique `memory.json` e `conversas_YYYY-MM-DD.json` para depurar.
 
 ---
