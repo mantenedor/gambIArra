@@ -37,23 +37,23 @@ gambIArra
 │   requirements.txt    # Lista de dependências Python
 │   speak.py            # Módulo de síntese de voz
 │   think.py            # Módulo de processamento e lógica
-├───models
-│   └───vosk-model-small-pt-0.3
-│       │   disambig_tid.int    # Arquivos do modelo Vosk
-│       │   final.mdl
-│       │   Gr.fst
-│       │   HCLr.fst
-│       │   mfcc.conf
-│       │   phones.txt
-│       │   README
-│       │   word_boundary.int
-│       └───ivector
-│               final.dubm       # Configurações de ivector do Vosk
-│               final.ie
-│               final.mat
-│               global_cmvn.stats
-│               online_cmvn.conf
-│               splice.conf
+└───models
+   └───vosk-model-small-pt-0.3
+       │   disambig_tid.int    # Arquivos do modelo Vosk
+       │   final.mdl
+       │   Gr.fst
+       │   HCLr.fst
+       │   mfcc.conf
+       │   phones.txt
+       │   README
+       │   word_boundary.int
+       └───ivector
+               final.dubm       # Configurações de ivector do Vosk
+               final.ie
+               final.mat
+               global_cmvn.stats
+               online_cmvn.conf
+               splice.conf
 ```
 
 ## Hierarquia das APIs
