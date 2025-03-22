@@ -65,7 +65,7 @@ O `think.py` suporta múltiplas APIs, consultadas na ordem definida em `commands
 - Se uma API falhar (timeout ou erro), a próxima na lista é tentada. Caso todas falhem, retorna "Erro: todas as APIs falharam".
 
 ## Palavras-Chaves
-- **"se chama"**: Define nomes (ex.: "Meu gato se chama Bagunça").
+- **"se chama"**: Define nomes (ex.: "Meu gato se chama Caxumba").
 - **"qual é"**: Consulta memória (ex.: "Qual é o nome do meu gato?").
 - **"não"**: Corrige informações (ex.: "Não, meu gato se chama Fumaça").
 - **"gato"**, **"lugar"**, **"pessoas"**: Categorias de entidades salvas na memória.
