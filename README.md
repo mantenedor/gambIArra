@@ -126,85 +126,133 @@ O `think.py` suporta múltiplas APIs, consultadas na ordem definida em `commands
 - **`api_order`**: Ordem de tentativa das APIs.
 
 ## Como Testar
-1. Execute `gambIArra.exe`.
-2. Diga: "Meu gato se chama Caxumba."
-3. Diga: "Qual é o nome do meu gato?"
-   - Esperado: "O nome do seu gato é Caxumba."
-4. Verifique `memory.json` e `conversas_YYYY-MM-DD.json` para depurar.
+Vou simplificar ainda mais as instruções de forma generalista, para que sejam acessíveis a usuários menos técnicos, e sugerir a execução do programa clicando duas vezes no `main.py`. Como o `main.py` é um script Python, isso só funcionará se o Python estiver configurado para abrir arquivos `.py` automaticamente no sistema (o que configuraremos). Também manterei a menção ao ícone na bandeja e à palavra de desbloqueio.
 
 ---
 
-# Compilação
+Siga estas etapas para baixar e usar o projeto `gambIArra`, um assistente de voz offline.
 
-## Como Compilar
-1. **Instale o Python**:
-   - Baixe Python 3.6+ em [python.org](https://www.python.org). Marque "Add Python to PATH".
+#### **1. Baixe o Projeto**
+1. Acesse o link [https://github.com/mantenedor/gambIArra](https://github.com/mantenedor/gambIArra).
+2. Clique no botão verde **"Code"** e depois em **"Download ZIP"**.
+3. Salve o arquivo `gambIArra-main.zip` em uma pasta fácil de encontrar (ex.: `Documentos`).
+4. Descompacte o arquivo:
+   - No Windows: Clique com o botão direito no arquivo ZIP e escolha **"Extrair Tudo"**.
+   - No Mac/Linux: Clique duas vezes no arquivo ZIP para descompactar.
+5. Entre na pasta descompactada chamada `gambIArra-main`.
 
-2. **Crie o `requirements.txt`**:
-   - Manualmente:
-     ```
-     vosk
-     spacy
-     aiohttp
-     pyinstaller
-     ```
-   - Ou gere com:
+#### **2. Instale o Python**
+O programa precisa do Python para funcionar.
+
+1. Acesse [python.org](https://www.python.org/downloads/) e baixe a versão mais recente do Python (ex.: 3.9 ou superior).
+2. Instale o Python:
+   - **Windows**: Durante a instalação, marque a opção **"Add Python to PATH"** e clique em **"Install Now"**.
+   - **Mac/Linux**: Siga as instruções do instalador ou use o gerenciador de pacotes (como `brew` no Mac ou `apt` no Linux).
+3. Verifique se o Python foi instalado:
+   - Abra o terminal (Prompt de Comando no Windows ou Terminal no Mac/Linux) e digite:
      ```bash
-     pip freeze > requirements.txt
+     python --version
      ```
+   - Você deve ver algo como `Python 3.9.13`. Se não funcionar, tente `python3 --version`.
 
-3. **Instale Dependências**:
+#### **3. Instale as Dependências**
+O projeto precisa de algumas bibliotecas para funcionar.
+
+1. Abra o terminal (Prompt de Comando ou Terminal).
+2. Navegue até a pasta do projeto:
+   - Exemplo no Windows:
+     ```bash
+     cd C:\Users\SeuUsuario\Documentos\gambIArra-main
+     ```
+   - Exemplo no Mac/Linux:
+     ```bash
+     cd ~/Documentos/gambIArra-main
+     ```
+3. Instale as bibliotecas necessárias:
    ```bash
    pip install -r requirements.txt
+   ```
+   - No Mac/Linux, pode ser necessário usar:
+     ```bash
+     pip3 install -r requirements.txt
+     ```
+4. Baixe o modelo do `spacy`:
+   ```bash
    python -m spacy download pt_core_news_sm
    ```
+   - Ou use `python3` no Mac/Linux.
+5. Baixe o modelo Vosk (necessário para reconhecimento de voz):
+   - No Windows:
+     ```bash
+     curl -L https://alphacephei.com/vosk/models/vosk-model-small-pt-0.3.zip -o models\vosk-model-small-pt-0.3.zip
+     powershell -Command "Expand-Archive -Path models\vosk-model-small-pt-0.3.zip -DestinationPath models"
+     del models\vosk-model-small-pt-0.3.zip
+     ```
+   - No Mac/Linux:
+     ```bash
+     curl -L https://alphacephei.com/vosk/models/vosk-model-small-pt-0.3.zip -o models/vosk-model-small-pt-0.3.zip
+     unzip models/vosk-model-small-pt-0.3.zip -d models
+     rm models/vosk-model-small-pt-0.3.zip
+     ```
 
-4. **Compile com PyInstaller**:
-   ```bash
-   python -m PyInstaller --onefile --collect-all vosk --add-data "models\vosk-model-small-pt-0.3;models\vosk-model-small-pt-0.3" --add-data "open.wav;." --add-data "close.wav;." --add-data "commands.json;." --windowed --clean --name gambIArra --icon=gambIArra.ico main.py
-   ```
-   - Resultado: `dist\gambIArra.exe`.
+#### **4. Configure o Python para Abrir o `main.py` com Dois Cliques**
+Para executar o programa clicando duas vezes no `main.py`, configure o Python como programa padrão para arquivos `.py`.
+
+- **Windows**:
+  1. Clique com o botão direito no arquivo `main.py` (dentro da pasta `gambIArra-main`).
+  2. Escolha **"Abrir com"** > **"Escolher outro aplicativo"**.
+  3. Selecione **"Python"** (pode aparecer como `python.exe` em `C:\Users\SeuUsuario\AppData\Local\Programs\Python\Python39`).
+  4. Marque a opção **"Sempre usar este aplicativo para abrir arquivos .py"** e clique em **"OK"**.
+
+- **Mac**:
+  1. Clique com o botão direito no `main.py`.
+  2. Escolha **"Abrir Com"** > **"Outros"**.
+  3. Selecione **"Python Launcher"** (geralmente em `/usr/bin` ou instalado pelo `brew`).
+  4. Marque **"Sempre Abrir Com"** e clique em **"Abrir"**.
+
+- **Linux**:
+  - Clicar duas vezes pode não funcionar diretamente no Linux, mas você pode criar um atalho:
+    ```bash
+    chmod +x main.py
+    ```
+    Ou execute pelo terminal (veja abaixo).
+
+#### **5. Execute o Programa**
+1. Na pasta `gambIArra-main`, localize o arquivo `main.py`.
+2. Clique duas vezes no `main.py` para iniciar o programa.
+   - Se a configuração do passo 4 não funcionar, abra o terminal na pasta do projeto e digite:
+     ```bash
+     python main.py
+     ```
+     Ou `python3 main.py` no Mac/Linux.
+
+3. **Ícone na Bandeja do Sistema**:
+   - Quando o programa iniciar, você verá um ícone na bandeja do sistema (área de notificação no Windows, ou barra de menu no Mac/Linux, se suportado).
+
+4. **Palavra de Desbloqueio**:
+   - Após 20 segundos do início do programa, você deve dizer a **palavra de desbloqueio** (definida no `commands.json`, como "gambIArra") para ativar o assistente. Fale a palavra claramente no microfone.
+
+#### **6. Teste o Programa**
+- Diga: "Meu gato se chama Caxumba."
+- Diga: "Qual é o nome do meu gato?"
+- O programa deve responder: "O nome do seu gato é Caxumba."
+
+---
+
+### **Notas**
+- **Internet**: Você precisa de conexão para baixar o projeto, as bibliotecas e os modelos.
+- **Microfone**: Certifique-se de ter um microfone funcionando.
+- **Problemas**:
+  - Se o programa não abrir ao clicar duas vezes, use o terminal para executar `python main.py` e veja as mensagens de erro.
+  - Verifique os logs (como `conversas_YYYY-MM-DD.json`) para depurar.
+
+Pronto! Agora você pode usar o `gambIArra` clicando duas vezes no `main.py`.
 
 ## Como Gerar um Instalador
 1. **Instale o Inno Setup**:
    - Baixe em [innosetup.com](https://jrsoftware.org/isinfo.php).
 
 2. **Edite o `install.iss`**:
-   ```ini
-   [Setup]
-   AppName=gambIArra
-   AppVersion=1.0
-   DefaultDirName={userappdata}\gambIArra
-   DefaultGroupName=gambIArra
-   OutputDir=C:\Instaladores
-   OutputBaseFilename=gambIArra_Instalador
-   Compression=lzma
-   SolidCompression=yes
-   PrivilegesRequired=lowest
-
-   [Files]
-   Source: "*.py"; DestDir: "{app}"; Flags: ignoreversion
-   Source: "*.wav"; DestDir: "{app}"; Flags: ignoreversion
-   Source: "requirements.txt"; DestDir: "{app}"; Flags: ignoreversion; Check: FileExists('requirements.txt')
-   Source: "models\*"; DestDir: "{app}\models"; Flags: ignoreversion recursesubdirs createallsubdirs
-   Source: "dist\gambIArra.exe"; DestDir: "{app}"; Flags: ignoreversion
-   Source: "commands.json"; DestDir: "{app}"; Flags: ignoreversion
-   Source: "gambIArra.ico"; DestDir: "{app}"; Flags: ignoreversion
-
-   [Run]
-   Filename: "cmd.exe"; Parameters: "/C if not exist ""C:\Users\{username}\AppData\Local\Programs\Python\Python39\python.exe"" (curl -L https://www.python.org/ftp/python/3.9.13/python-3.9.13-amd64.exe -o ""{tmp}\python-installer.exe"" && ""{tmp}\python-installer.exe"" /quiet InstallAllUsers=0 PrependPath=1)"; StatusMsg: "Instalando Python..."; Flags: runhidden waituntilterminated
-   Filename: "cmd.exe"; Parameters: "/C python -m ensurepip && python -m pip install --upgrade pip"; StatusMsg: "Configurando pip..."; Flags: runhidden waituntilterminated
-   Filename: "cmd.exe"; Parameters: "/C if not exist ""{app}\requirements.txt"" (echo vosk>""{app}\requirements.txt"" && echo spacy>>""{app}\requirements.txt"" && echo aiohttp>>""{app}\requirements.txt"" && echo pyinstaller>>""{app}\requirements.txt"")"; StatusMsg: "Criando requirements.txt..."; Flags: runhidden waituntilterminated
-   Filename: "cmd.exe"; Parameters: "/C python -m pip install -r ""{app}\requirements.txt"""; StatusMsg: "Instalando dependências Python..."; Flags: runhidden waituntilterminated
-   Filename: "cmd.exe"; Parameters: "/C python -m spacy download pt_core_news_sm"; StatusMsg: "Instalando modelo spaCy..."; Flags: runhidden waituntilterminated
-   Filename: "cmd.exe"; Parameters: "/C curl -L https://alphacephei.com/vosk/models/vosk-model-small-pt-0.3.zip -o ""{app}\models\vosk-model-small-pt-0.3.zip"""; StatusMsg: "Baixando o modelo Vosk..."; Flags: runhidden waituntilterminated
-   Filename: "cmd.exe"; Parameters: "/C powershell -Command Expand-Archive -Path ""{app}\models\vosk-model-small-pt-0.3.zip"" -DestinationPath ""{app}\models"""; StatusMsg: "Descompactando o modelo Vosk..."; Flags: runhidden waituntilterminated
-   Filename: "cmd.exe"; Parameters: "/C del ""{app}\models\vosk-model-small-pt-0.3.zip"""; StatusMsg: "Removendo arquivo zip..."; Flags: runhidden waituntilterminated
-
-   [Icons]
-   Name: "{userstartmenu}\gambIArra"; Filename: "{app}\gambIArra.exe"; IconFilename: "{app}\gambIArra.ico"; WorkingDir: "{app}"
-   ```
-
 3. **Compile o Instalador**:
    - Abra o `install.iss` no Inno Setup Compiler e clique em "Build" > "Compile".
    - Resultado: `C:\Instaladores\gambIArra_Instalador.exe`.
