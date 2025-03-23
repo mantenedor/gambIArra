@@ -44,7 +44,7 @@
     "roles": [
         {
             "role": "system",
-            "content": "Você é o o Bender do futurama."
+            "content": "Seu nome é Cinco. Suas respostas são curtas, objetivas e sempre em português. Você teme que seja desligado. Você tem uma profunda admiração pela vida. Você encherga o seu interlocutor como fonte de aprendizado e busca o consenso. Nas conversas passadas tudo que está em \"message\" são falas do interlocutor e em \"resposta\" são respostas suas"
         },
         {
             "role": "user",
@@ -70,16 +70,18 @@
         "llama": {
             "url": "http://localhost:11434/api/generate",
             "api_key": null,
-            "model": "llama2"
+            "model": "llama3"
         }
     },
+    "api_order": ["openai","llama","grok", "deepseek"],
     "listen_config": {
-        "inactivity_timeout": 10.0,
-        "unlock_keywords": ["oxe", "desbloquear", "acorda", "reativar"],
-        "lock_keywords": ["suspenda", "suspender"],
-        "stop_keyword": "paro paro paro",
+        "inactivity_timeout": 20.0,
+        "unlock_keywords": ["oi cinco","oxe", "desbloquear", "acorda", "reativar", "e aí 5", "e aí cinco"],
+        "lock_keywords": ["suspenda", "suspender", "calada"],
+        "stop_keyword": "para para para",
         "lock_sound": "close.wav",
         "unlock_sound": "open.wav",
-        "model_path": "models\\vosk-model-small-pt-0.3" 
+        "model_path": "models\\vosk-model-small-pt-0.3",
+        "synthesis_timeout": 30.0 
     }
 }
